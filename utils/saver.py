@@ -163,7 +163,21 @@ class Saver:
         if 'save_every_n_steps' in self.config and step % self.config['save_every_n_steps'] == 0:
             self.save_model(f'step{step}')
 
+        num_steps = self.config.get("num_steps", None)
+        save_steps = self.config.get("save_every_n_steps", None)
+
         if need_to_checkpoint(self.config) or should_manually_save:
+        if isinstance(num_steps, int) and step >= num_steps:
+            print(f"Stopping training at user-requested step of {num_steps}")
+            should_manually_save = True
+            should_manually_quit = True
+        elif isinstance(save_steps, int) and step % save_steps == 0:
+            should_manually_save = True
+
+        if should_manually_save:
+            self.save_model(f'step{step}')
+
+        if need_to_checkpoint(self.config):
             self.save_checkpoint(step)
 
         if should_manually_quit:
